@@ -6,7 +6,6 @@ import shlex
 import logging
 import configuration
 import device_record
-from configuration import perform_cmd
 
 from pathlib import Path, PurePosixPath
 
@@ -18,7 +17,7 @@ PROP_PREVIEW = "ro.build.version.preview_sdk"
 
 
 class DeviceProvider:
-    """Provider interface
+    """Provider interface. Just to make a clear convention
     TODO: use zope.interface to make it strict?
     """
 
@@ -30,19 +29,28 @@ class DeviceProvider:
 
 
 class MiniDeviceProvider(DeviceProvider):
-    def __init__(self, min_port, max_port):
-        self.ports_pool = configuration.PortsPool(min_port, max_port)
+    def __init__(self, start_port, end_port, minicap_root, minitouch_root):
+        self.ports_pool = configuration.PortsPool(start_port, end_port)
+        self.minicap_root = Path(minicap_root).expanduser()
+        self.minitouch_root = Path(minitouch_root).expanduser()
 
-    def launch_minitouch(self, device, minitouch_root):
+    def launch_minitouch(self, device):
+
+        # Get device's properties to choose right minitouch executable
         abi = device.get_property(PROP_ABI)
         if device.sdk_version >= 16:
             bin = "minitouch"
         else:
             bin = "minitouch-nopie"
-        minitouch_path = minitouch_root / "libs" / abi / bin
+
+        # Prepare all necessary paths
+        minitouch_path = self.minitouch_root / "libs" / abi / bin
         device_dir = PurePosixPath("/data/local/tmp")
+
+        # Push minitouch executable to device
         device.perform_adb_cmd("push {} {}".format(minitouch_path, device_dir))
 
+        # Launch minitouch
         start_cmd = "adb -s {id} shell {path}".format(
             id=device.adb_id, path=device_dir / bin)
         subprocess.Popen(
@@ -50,17 +58,15 @@ class MiniDeviceProvider(DeviceProvider):
             stderr=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL)
 
+        # Forward minitouch tcp port
         port = self.ports_pool.get_port()
         device.perform_adb_cmd(
             "forward tcp:{} localabstract:minitouch".format(port))
-        print("Start CMD: ", start_cmd)
-        print("Minitouch: ", minitouch_path)
-        print("Port: ", port)
         return port
 
-    def launch_minicap(self, device, minicap_root):
-        # minicap_root is pathlib Path !
-        port = self.ports_pool.get_port()
+    def launch_minicap(self, device):
+
+        # Get device's properties to choose right minicap executable
         abi = device.get_property(PROP_ABI)
         pre = device.get_property(PROP_PREVIEW)
         if pre:
@@ -68,47 +74,44 @@ class MiniDeviceProvider(DeviceProvider):
         else:
             sdk = device.sdk_version
         rel = device.android_version
-
         if sdk >= 16:
             bin = "minicap"
         else:
             bin = "minicap-nopie"
 
+        # Configure real and virtual screen size
         size = device.get_screen_size()
         args = "-P {}@{}/0".format(size, size)
 
-        # TODO: or use non-Pure PosicPath ?
+        # Prepare all necessary paths
         device_dir = PurePosixPath("/data/local/tmp/minicap-devel")
-        r = device.perform_adb_cmd("shell mkdir {}".format(device_dir))
-        print("R: ", r)
-        minicap_path = minicap_root / "libs" / abi / bin
-        minicap_so_base = minicap_root / "jni" / "minicap-shared" / "aosp" / "libs" / "android-{}" / abi / "minicap.so"
+        minicap_path = self.minicap_root / "libs" / abi / bin
+        minicap_so_base = self.minicap_root / "jni" / "minicap-shared" / "aosp" / "libs" / "android-{}" / abi / "minicap.so"
         minicap_so_path = Path(str(minicap_so_base).format(rel))
         if not minicap_so_path.exists():
             minicap_so_path = Path(str(minicap_so_base).format(sdk))
-        p = device.perform_adb_cmd("push {} {}".format(minicap_path,
-                                                       device_dir))
-        print("P: ", p)
-        p = device.perform_adb_cmd("push {} {}".format(minicap_so_path,
-                                                       device_dir))
-        print("P: ", p)
+
+        # Push minicap executable to device
+        device.perform_adb_cmd("shell mkdir {}".format(device_dir))
+        device.perform_adb_cmd("push {} {}".format(minicap_path, device_dir))
+        device.perform_adb_cmd("push {} {}".format(minicap_so_path,
+                                                   device_dir))
+        # Launch minicap
         start_cmd = "adb -s {id} shell LD_LIBRARY_PATH={dir} {dir}/{bin} {args}".format(
             id=device.adb_id, dir=device_dir, bin=bin, args=args)
         subprocess.Popen(
             shlex.split(start_cmd),
             stderr=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL)
-        print("Start CMD: ", start_cmd)
-        print("Minicap: ", minicap_path)
-        print("Minicap.so: ", minicap_so_path)
-        print("Port: ", port)
-        print("Rel: ", rel)
+
+        # Fprward minicap tcp port
+        port = self.ports_pool.get_port()
         device.perform_adb_cmd(
             "forward tcp:{} localabstract:minicap".format(port))
         return port
 
     def init_devices(self):
-        adb_devices_result = perform_cmd("adb devices")
+        adb_devices_result = configuration.perform_cmd("adb devices")
         devices = []
         for line in adb_devices_result.split("\n"):
             line = line.strip()
@@ -119,22 +122,32 @@ class MiniDeviceProvider(DeviceProvider):
             device.android_version = device.get_property(PROP_ANDROID_VERSION)
             device.sdk_version = int(device.get_property(PROP_SDK_VERSION))
             device.device_name = device.get_property(PROP_DEVICE_NAME)
-            print("Android: ", device.android_version)
-            print("SDK: ", device.sdk_version)
-            print("Name: ", device.device_name)
-            device.minicap_port = self.launch_minicap(
-                device, Path("~/sdk/openstf/minicap").expanduser())
-            device.minitouch_port = self.launch_minitouch(
-                device, Path("~/sdk/openstf/minitouch").expanduser())
+            device.minicap_port = self.launch_minicap(device)
+            device.minitouch_port = self.launch_minitouch(device)
             devices.append(device)
+        return devices
 
 
 # TODO: should return a suitable provider as a singleton
 # Maybe save it in Flask app globally?
 def getProvider():
-    pass
+    """Factory method, returning appropriate DeviceProvider according to configuration file
+
+    Now it's only MINI configuration supported, which uses:
+        OpenSTF Minicap: for obtainig device screenshot
+        OpenSTF Minitouch: for sending multitouch commands
+        ADB: for other commands
+    """
+
+    config = configuration.get_main_config()
+    start_port = config.getint("Basic Config", "start_port")
+    end_port = start_port + config.getint("Basic Config", "max_devices") * 2
+    minicap_root = config.get("Basic Config", "minicap_root")
+    minitouch_root = config.get("Basic Config", "minitouch_root")
+    return MiniDeviceProvider(start_port, end_port, minicap_root,
+                              minitouch_root)
 
 
 if __name__ == "__main__":
-    provider = MiniDeviceProvider(1111, 1113)
+    provider = getProvider()
     provider.init_devices()
