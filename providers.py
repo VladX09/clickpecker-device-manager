@@ -1,9 +1,5 @@
-import json
 import subprocess
-import re
-import os
 import shlex
-import logging
 import configuration
 import device_record
 

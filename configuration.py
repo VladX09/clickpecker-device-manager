@@ -1,6 +1,7 @@
 import subprocess
 import configparser
 import pathlib
+import shlex
 
 CONFIG_PATH = "device_manager.conf"
 
@@ -8,7 +9,7 @@ CONFIG_PATH = "device_manager.conf"
 # TODO: find the right place for it
 def perform_cmd(cmd):
     process = subprocess.run(
-        cmd.split(), stdout=subprocess.PIPE, encoding="UTF-8")
+        shlex.split(cmd), stdout=subprocess.PIPE, encoding="UTF-8")
     return process.stdout
 
 
