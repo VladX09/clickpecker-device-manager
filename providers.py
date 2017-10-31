@@ -2,9 +2,18 @@ import subprocess
 import shlex
 import configuration
 import device_record
-
+import json
+import logging
+from logging import config
 from pathlib import Path, PurePosixPath
 
+# Configure and add module-level logger
+with open("logger.json") as f:
+    conf = json.load(f)
+logging.config.dictConfig(conf)
+logger = logging.getLogger("device_manager")
+
+# Add some constants for ADB
 PROP_ANDROID_VERSION = "ro.build.version.release"
 PROP_DEVICE_NAME = "ro.product.model"
 PROP_SDK_VERSION = "ro.build.version.sdk"
@@ -86,6 +95,8 @@ class MiniDeviceProvider(DeviceProvider):
         minicap_so_path = Path(str(minicap_so_base).format(rel))
         if not minicap_so_path.exists():
             minicap_so_path = Path(str(minicap_so_base).format(sdk))
+        logger.debug("Device: {}; Paths: {},{} -> {}".format(
+            device.adb_id, minicap_path, minicap_so_path, device_dir))
 
         # Push minicap executable to device
         device.perform_adb_cmd("shell mkdir {}".format(device_dir))
@@ -95,19 +106,23 @@ class MiniDeviceProvider(DeviceProvider):
         # Launch minicap
         start_cmd = "adb -s {id} shell LD_LIBRARY_PATH={dir} {dir}/{bin} {args}".format(
             id=device.adb_id, dir=device_dir, bin=bin, args=args)
+        logger.debug("Device: {} starting; Start_cmd: '{}'".format(
+            device.adb_id, start_cmd))
+
         subprocess.Popen(
             shlex.split(start_cmd),
             stderr=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL)
 
-        # Fprward minicap tcp port
+        # Forward minicap tcp port
+        # TODO: add Pool's KeyError handler
         port = self.ports_pool.get_port()
         device.perform_adb_cmd(
             "forward tcp:{} localabstract:minicap".format(port))
         return port
 
     def init_devices(self):
-        adb_devices_result = configuration.perform_cmd("adb devices")
+        adb_devices_result = device_record.perform_cmd("adb devices")
         devices = []
         for line in adb_devices_result.split("\n"):
             line = line.strip()
@@ -121,6 +136,7 @@ class MiniDeviceProvider(DeviceProvider):
             device.minicap_port = self.launch_minicap(device)
             device.minitouch_port = self.launch_minitouch(device)
             devices.append(device)
+        # TODO: add {logger.info(device.to_json()) for device in devices}
         return devices
 
 
@@ -133,6 +149,7 @@ def getProvider():
         OpenSTF Minicap: for obtainig device screenshot
         OpenSTF Minitouch: for sending multitouch commands
         ADB: for other commands
+
     """
 
     config = configuration.get_main_config()
@@ -140,6 +157,10 @@ def getProvider():
     end_port = start_port + config.getint("Basic Config", "max_devices") * 2
     minicap_root = config.get("Basic Config", "minicap_root")
     minitouch_root = config.get("Basic Config", "minitouch_root")
+    logger.info("Start port: {}; End_port: {}".format(start_port, end_port))
+    logger.info("Minicap_root: {}; Minitouch_root: {}".format(
+        minicap_root, minitouch_root))
+
     return MiniDeviceProvider(start_port, end_port, minicap_root,
                               minitouch_root)
 

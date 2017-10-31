@@ -1,6 +1,17 @@
 import re
+import logging
+import subprocess
+import shlex
 
-from configuration import perform_cmd
+logger = logging.getLogger("device_manager.device_record")
+
+
+def perform_cmd(cmd):
+    logger = logging.getLogger("device_manager.perform_cmd")
+    process = subprocess.run(
+        shlex.split(cmd), stdout=subprocess.PIPE, encoding="UTF-8")
+    logger.debug("Performing cmd: {}, result: {}".format(cmd, process))
+    return process.stdout
 
 
 class DeviceRecord:
