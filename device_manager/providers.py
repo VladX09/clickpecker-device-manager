@@ -8,11 +8,7 @@ from logging import config
 from pathlib import Path, PurePosixPath
 import utils
 
-# Configure and add module-level logger
-with open("logger.json") as f:
-    conf = json.load(f)
-logging.config.dictConfig(conf)
-logger = logging.getLogger("device_manager")
+logger = logging.getLogger("device_manager.providers")
 
 # Add some constants for ADB
 PROP_ANDROID_VERSION = "ro.build.version.release"
@@ -141,8 +137,7 @@ class MiniDeviceProvider(DeviceProvider):
         return devices
 
 
-# TODO: should return a suitable provider as a singleton
-# Maybe save it in Flask app globally?
+# TODO: should return a suitable provider. Should be moved to more abstract layer
 def getProvider():
     """Factory method, returning appropriate DeviceProvider according to configuration file
 
