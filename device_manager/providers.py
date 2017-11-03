@@ -6,6 +6,7 @@ import json
 import logging
 from logging import config
 from pathlib import Path, PurePosixPath
+import utils
 
 # Configure and add module-level logger
 with open("logger.json") as f:
@@ -122,14 +123,14 @@ class MiniDeviceProvider(DeviceProvider):
         return port
 
     def init_devices(self):
-        adb_devices_result = device_record.perform_cmd("adb devices")
+        adb_devices_result = utils.perform_cmd("adb devices")
         devices = []
         for line in adb_devices_result.split("\n"):
             line = line.strip()
             if ("*" in line or "List of" in line or not line):
                 continue
             adb_id, status = line.split("\t")
-            device = device_record.init_mini(adb_id, status)
+            device = device_record.DeviceRecord(adb_id=adb_id, status=status)
             device.android_version = device.get_property(PROP_ANDROID_VERSION)
             device.sdk_version = int(device.get_property(PROP_SDK_VERSION))
             device.device_name = device.get_property(PROP_DEVICE_NAME)
