@@ -133,7 +133,6 @@ class MiniDeviceProvider(DeviceProvider):
             device.minicap_port = self.launch_minicap(device)
             device.minitouch_port = self.launch_minitouch(device)
             devices.append(device)
-        # TODO: add {logger.info(device.to_json()) for device in devices}
         return devices
 
 
