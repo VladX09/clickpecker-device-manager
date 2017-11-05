@@ -1,7 +1,7 @@
 import subprocess
 import shlex
 import configuration
-import device_record
+import device
 import json
 import logging
 from logging import config
@@ -23,10 +23,7 @@ class DeviceProvider:
     TODO: use zope.interface to make it strict?
     """
 
-    def get_device_by_spec(self, json_spec):
-        pass
-
-    def get_device_list(self):
+    def get_devices(self, filters=None):
         pass
 
 
@@ -35,10 +32,16 @@ class MiniDeviceProvider(DeviceProvider):
         self.ports_pool = configuration.PortsPool(start_port, end_port)
         self.minicap_root = Path(minicap_root).expanduser()
         self.minitouch_root = Path(minitouch_root).expanduser()
+        self.devices = {}
 
     def launch_minitouch(self, device):
 
-        # Get device's properties to choose right minitouch executable
+        # Check if minitouch was launched alraedy
+        port = self.check_app(device, "minitouch")
+        if port is not None:
+            return port
+
+       # Get device's properties to choose right minitouch executable
         abi = device.get_property(PROP_ABI)
         if device.sdk_version >= 16:
             bin = "minitouch"
@@ -66,7 +69,24 @@ class MiniDeviceProvider(DeviceProvider):
             "forward tcp:{} localabstract:minitouch".format(port))
         return port
 
+    def check_app(self, device, name):
+        app_running = device.check_app_running("minicap")
+        port_exists = device.minicap_port is not None
+
+        if app_running and port_exists:
+            return device.minicap_port
+        if app_running and not port_exists:
+            device.kill_app("minicap")
+        if not app_running and port_exists:
+            self.ports_pool.release_port(device.minicap_port)
+        return None
+
     def launch_minicap(self, device):
+
+        # Check if minicap was launched alraedy
+        port = self.check_app(device, "minicap")
+        if port is not None:
+            return port
 
         # Get device's properties to choose right minicap executable
         abi = device.get_property(PROP_ABI)
@@ -120,20 +140,28 @@ class MiniDeviceProvider(DeviceProvider):
 
     def init_devices(self):
         adb_devices_result = utils.perform_cmd("adb devices")
-        devices = []
+        _devices = {}
         for line in adb_devices_result.split("\n"):
             line = line.strip()
             if ("*" in line or "List of" in line or not line):
                 continue
             adb_id, status = line.split("\t")
-            device = device_record.DeviceRecord(adb_id=adb_id, status=status)
+
+            if adb_id in self.devices:
+                device = self.devices[adb_id]
+            else:
+                device = device.Device(adb_id=adb_id, status=status)
             device.android_version = device.get_property(PROP_ANDROID_VERSION)
             device.sdk_version = int(device.get_property(PROP_SDK_VERSION))
             device.device_name = device.get_property(PROP_DEVICE_NAME)
             device.minicap_port = self.launch_minicap(device)
             device.minitouch_port = self.launch_minitouch(device)
-            devices.append(device)
-        return devices
+            _devices[adb_id] = device
+        self.devices = _devices
+        return self.devices
+
+    def get_devices(self, filters=None):
+        pass
 
 
 # TODO: should return a suitable provider. Should be moved to more abstract layer

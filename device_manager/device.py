@@ -5,7 +5,7 @@ import utils
 logger = logging.getLogger("device_manager.device_record")
 
 
-class DeviceRecord:
+class Device:
     def __init__(self,
                  adb_id=None,
                  device_name=None,
@@ -38,7 +38,6 @@ class DeviceRecord:
     def get_property(self, prop):
         return self.perform_adb_cmd("shell getprop {}".format(prop)).strip()
 
-    # TODO: Move to utils or provider
     def get_screen_size(self):
         size_regex = "init=[\d]*x[\d]*"
         dumpsys = self.perform_adb_cmd("shell dumpsys window")
@@ -52,3 +51,12 @@ class DeviceRecord:
                 "DisplayHeight=", "")
             return "{}x{}".format(width, height)
         return size_match.group(0).strip().replace("init=", "")
+
+    def check_app_running(self, name):
+        lines = self.perform_adb_cmd("shell 'ps |grep {}'".format(name)).split('\n')
+        return (len(lines) > 0 and lines[0] != "")
+
+    def kill_app(self, name):
+        lines = self.perform_adb_cmd("shell 'ps |grep {}'".format(name)).split('\n')
+        pid = lines[0].split()[1]
+        self.perform_adb_cmd("shell 'kill {}'".format(pid))
