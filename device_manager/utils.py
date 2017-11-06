@@ -5,9 +5,8 @@ import shlex
 import subprocess
 import logging
 
-
-CONFIG_PATH = "device_manager.conf"
-LOGGING_CONFIG_PATH = "logger.json"
+CONFIG_PATH = "configs/device_manager.conf"
+LOGGING_CONFIG_PATH = "configs/logger.json"
 
 logger = logging.getLogger("device_manager.utils")
 
@@ -37,10 +36,12 @@ def get_main_config():
     config.read(conf_path)
     return config
 
+
 def configure_logger():
     with open(LOGGING_CONFIG_PATH) as f:
         conf = json.load(f)
         logging.config.dictConfig(conf)
+
 
 def perform_cmd(cmd):
     logger = logging.getLogger("device_manager.utils.perform_cmd")
@@ -48,4 +49,3 @@ def perform_cmd(cmd):
         shlex.split(cmd), stdout=subprocess.PIPE, encoding="UTF-8")
     logger.debug("Performing cmd: {}, result: {}".format(cmd, process))
     return process.stdout
-

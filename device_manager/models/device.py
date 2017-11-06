@@ -1,6 +1,6 @@
 import re
 import logging
-import utils
+from device_manager import utils
 
 logger = logging.getLogger("device_manager.device_record")
 

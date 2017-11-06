@@ -1,14 +1,11 @@
 import subprocess
 import shlex
-import configuration
-import device
-import json
 import logging
-from logging import config
 from pathlib import Path, PurePosixPath
-import utils
 
-logger = logging.getLogger("device_manager.providers")
+from device_manager.providers.device_provider import DeviceProvider
+from device_manager.models import device
+from device_manager import utils
 
 # Add some constants for ADB
 PROP_ANDROID_VERSION = "ro.build.version.release"
@@ -17,14 +14,7 @@ PROP_SDK_VERSION = "ro.build.version.sdk"
 PROP_ABI = "ro.product.cpu.abi"
 PROP_PREVIEW = "ro.build.version.preview_sdk"
 
-
-class DeviceProvider:
-    """Provider interface. Just to make a clear convention
-    TODO: use zope.interface to make it strict?
-    """
-
-    def get_devices(self, filters=None):
-        pass
+logger = logging.getLogger("device_manager.mini_provider")
 
 
 class MiniDeviceProvider(DeviceProvider):
@@ -41,7 +31,7 @@ class MiniDeviceProvider(DeviceProvider):
         if port is not None:
             return port
 
-       # Get device's properties to choose right minitouch executable
+    # Get device's properties to choose right minitouch executable
         abi = device.get_property(PROP_ABI)
         if device.sdk_version >= 16:
             bin = "minitouch"
@@ -158,36 +148,24 @@ class MiniDeviceProvider(DeviceProvider):
             device.minitouch_port = self.launch_minitouch(device)
             _devices[adb_id] = device
         self.devices = _devices
-        return self.devices
+        return _devices
+
+    def _check_filter(self, device, key, value):
+        if "__" not in key:
+            key = key + "__eq"
+        key, operator = key.split("__")
+        field = getattr(device, key)
+
+        if operator in ["eq", "lt", "gt", "le", "ge"]:
+            operator = "__{}__".format(operator)
+            return getattr(field, operator)(value)
 
     def get_devices(self, filters=None):
-        pass
-
-
-# TODO: should return a suitable provider. Should be moved to more abstract layer
-def getProvider():
-    """Factory method, returning appropriate DeviceProvider according to configuration file
-
-    Now it's only MINI configuration supported, which uses:
-        OpenSTF Minicap: for obtainig device screenshot
-        OpenSTF Minitouch: for sending multitouch commands
-        ADB: for other commands
-
-    """
-
-    config = configuration.get_main_config()
-    start_port = config.getint("Basic Config", "start_port")
-    end_port = start_port + config.getint("Basic Config", "max_devices") * 2
-    minicap_root = config.get("Basic Config", "minicap_root")
-    minitouch_root = config.get("Basic Config", "minitouch_root")
-    logger.info("Start port: {}; End_port: {}".format(start_port, end_port))
-    logger.info("Minicap_root: {}; Minitouch_root: {}".format(
-        minicap_root, minitouch_root))
-
-    return MiniDeviceProvider(start_port, end_port, minicap_root,
-                              minitouch_root)
-
-
-if __name__ == "__main__":
-    provider = getProvider()
-    provider.init_devices()
+        devices = self.init_devices()
+        if filters is not None:
+            for key, value in filters.items():
+                devices = [
+                    device for device in devices
+                    if self._check_filter(device, key, value)
+                ]
+        return devices
