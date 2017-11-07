@@ -59,6 +59,7 @@ dumps_negative = [
     "Somestring with DisplayWidth=123 but without DisplayHeight"
 ]
 
+
 @pytest.mark.parametrize("dumpsys", dumps_negative)
 @mock.patch("device_manager.utils.perform_cmd")
 def test_get_screen_size_negative(mock_perform_cmd, dumpsys):
@@ -66,4 +67,3 @@ def test_get_screen_size_negative(mock_perform_cmd, dumpsys):
     device = Device(device_spec)
     with pytest.raises(ValueError):
         print(device.get_screen_size())
-
