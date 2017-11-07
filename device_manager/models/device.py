@@ -39,24 +39,33 @@ class Device:
         return self.perform_adb_cmd("shell getprop {}".format(prop)).strip()
 
     def get_screen_size(self):
-        size_regex = "init=[\d]*x[\d]*"
+        size_regex = "init=[\d]{3,}x[\d]{3,}"
+        width_regex = "DisplayWidth=[\d]{3,}"
+        height_regex = "DisplayHeight=[\d]{3,}"
+
         dumpsys = self.perform_adb_cmd("shell dumpsys window")
         size_match = re.search(size_regex, dumpsys)
+
         if not size_match:
-            width_regex = "DisplayWidth=[\d]*"
-            height_regex = "DisplayHeight=[\d]*"
-            width = re.search(width_regex, dumpsys).group(0).strip().replace(
-                "DisplayWidth=", "")
-            height = re.search(height_regex, dumpsys).group(0).strip().replace(
-                "DisplayHeight=", "")
+            width = re.search(width_regex, dumpsys)
+            height = re.search(height_regex, dumpsys)
+
+            if not width or not height:
+                raise ValueError("Dumpsys does not contain display size")
+
+            width = width.group(0).strip().replace("DisplayWidth=", "")
+            height = height.group(0).strip().replace("DisplayHeight=", "")
             return "{}x{}".format(width, height)
+
         return size_match.group(0).strip().replace("init=", "")
 
     def check_app_running(self, name):
-        lines = self.perform_adb_cmd("shell 'ps |grep {}'".format(name)).split('\n')
+        lines = self.perform_adb_cmd(
+            "shell 'ps |grep {}'".format(name)).split('\n')
         return (len(lines) > 0 and lines[0] != "")
 
     def kill_app(self, name):
-        lines = self.perform_adb_cmd("shell 'ps |grep {}'".format(name)).split('\n')
+        lines = self.perform_adb_cmd(
+            "shell 'ps |grep {}'".format(name)).split('\n')
         pid = lines[0].split()[1]
         self.perform_adb_cmd("shell 'kill {}'".format(pid))
