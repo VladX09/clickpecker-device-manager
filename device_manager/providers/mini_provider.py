@@ -6,6 +6,7 @@ from pathlib import Path, PurePosixPath
 from device_manager.providers.device_provider import DeviceProvider
 from device_manager.models import device
 from device_manager import utils
+from device_manager.providers.ports_pool import PortsPool
 
 # Add some constants for ADB
 PROP_ANDROID_VERSION = "ro.build.version.release"
@@ -19,7 +20,7 @@ logger = logging.getLogger("device_manager.mini_provider")
 
 class MiniDeviceProvider(DeviceProvider):
     def __init__(self, start_port, end_port, minicap_root, minitouch_root):
-        self.ports_pool = configuration.PortsPool(start_port, end_port)
+        self.ports_pool = PortsPool(start_port, end_port)
         self.minicap_root = Path(minicap_root).expanduser()
         self.minitouch_root = Path(minitouch_root).expanduser()
         self.devices = {}
