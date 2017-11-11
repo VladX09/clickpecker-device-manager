@@ -32,6 +32,9 @@ class DeviceObtainRequest(ValidRequest):
     def from_dict(cls, dict_):
         invalid_req = InvalidRequest()
 
+        if 'filters' not in dict_:
+            invalid_req.add_error('filters', 'field is absent')
+
         if 'filters' in dict_ and not isinstance(dict_['filters'],
                                                  collections.Mapping):
             invalid_req.add_error('filters', 'is not a {}'.format(
