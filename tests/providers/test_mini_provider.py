@@ -131,6 +131,12 @@ def test_filters_wrong_operators(mocked_mini_provider, _filter):
         devices = mocked_mini_provider.get_devices(_filter)
 
 
+def test_filters_wrong_field(mocked_mini_provider):
+    with pytest.raises(AttributeError):
+        filters = {"some_wrong_field__le": "val"}
+        devices = mocked_mini_provider.get_devices(filters)
+
+
 def test_acquire(mocked_mini_provider):
     id = "device_2"
     filters = {"adb_id": id}
