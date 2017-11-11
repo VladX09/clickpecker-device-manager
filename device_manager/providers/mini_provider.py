@@ -28,7 +28,7 @@ class MiniDeviceProvider(DeviceProvider):
     def launch_minitouch(self, device):
 
         # Check if minitouch was launched alraedy
-        port = self.check_app(device, "minitouch")
+        port = self._check_app(device, "minitouch")
         if port is not None:
             return port
 
@@ -60,7 +60,7 @@ class MiniDeviceProvider(DeviceProvider):
             "forward tcp:{} localabstract:minitouch".format(port))
         return port
 
-    def check_app(self, device, name):
+    def _check_app(self, device, name):
         app_running = device.check_app_running("minicap")
         port_exists = device.minicap_port is not None
 
@@ -75,7 +75,7 @@ class MiniDeviceProvider(DeviceProvider):
     def launch_minicap(self, device):
 
         # Check if minicap was launched alraedy
-        port = self.check_app(device, "minicap")
+        port = self._check_app(device, "minicap")
         if port is not None:
             return port
 
@@ -129,9 +129,9 @@ class MiniDeviceProvider(DeviceProvider):
             "forward tcp:{} localabstract:minicap".format(port))
         return port
 
-    def init_devices(self):
+    def _get_devices_from_adb(self):
         adb_devices_result = utils.perform_cmd("adb devices")
-        _devices = {}
+        devices = {}
         for line in adb_devices_result.split("\n"):
             line = line.strip()
             if ("*" in line or "List of" in line or not line):
@@ -147,9 +147,12 @@ class MiniDeviceProvider(DeviceProvider):
             device.device_name = device.get_property(PROP_DEVICE_NAME)
             device.minicap_port = self.launch_minicap(device)
             device.minitouch_port = self.launch_minitouch(device)
-            _devices[adb_id] = device
-        self.devices = _devices
-        return _devices
+            devices[adb_id] = device
+        return devices
+
+    def _init_devices(self):
+        self.devices = self._get_devices_from_adb()
+        return self.devices
 
     def _check_filter(self, device, key, value):
         if "__" not in key:
@@ -161,21 +164,27 @@ class MiniDeviceProvider(DeviceProvider):
             operator = "__{}__".format(operator)
             result = getattr(field, operator)(value)
             if result is NotImplemented:
-                raise TypeError("Wrong value type in filter: {}:{}".format(key,value))
+                raise TypeError("Wrong value type in filter: {}:{}".format(
+                    key, value))
             return result
 
         if operator == "ne":
-            result = not self._check_filter(device, field_name+"__eq", value)
+            result = not self._check_filter(device, field_name + "__eq", value)
             return result
 
-        raise NotImplementedError("Operator '{}' is not implemented".format(operator))
+        raise NotImplementedError(
+            "Operator '{}' is not implemented".format(operator))
 
     def get_devices(self, filters=None):
-        devices = self.init_devices()
+        devices = self._init_devices().values()
         if filters is not None:
             for key, value in filters.items():
                 devices = [
                     device for device in devices
                     if self._check_filter(device, key, value)
                 ]
+        devices = [device.copy() for device in devices]
         return devices
+
+    def acquire_device(self, device):
+        self.devices[device.adb_id].free = False

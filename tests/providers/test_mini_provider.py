@@ -4,11 +4,15 @@ from unittest import mock
 import pytest
 
 
-def test_without_filters(test_devices, mocked_mini_provider):
-    devices = mocked_mini_provider.get_devices()
-    assert devices == test_devices
-    devices = mocked_mini_provider.get_devices({})
-    assert devices == test_devices
+@pytest.mark.parametrize("_filter", [None, {}])
+def test_without_filters(test_devices, mocked_mini_provider, _filter):
+    test_ids = test_devices.keys()
+    test_devices = test_devices.values()
+    filtered_devices = mocked_mini_provider.get_devices(_filter)
+    filtered_ids = [device.adb_id for device in filtered_devices]
+    assert len(filtered_devices) == len(test_devices)
+    for id in test_ids:
+        assert id in filtered_ids
 
 
 def test_filters_eq(mocked_mini_provider):
@@ -23,6 +27,7 @@ def test_filters_eq(mocked_mini_provider):
 
 
 def test_filters_operations(test_devices, mocked_mini_provider):
+    test_devices = test_devices.values()
     devices = mocked_mini_provider.get_devices({"sdk_version__lt": 19})
     assert len(devices) == len(
         [device for device in test_devices if device.sdk_version < 19])
@@ -45,6 +50,7 @@ def test_filters_operations(test_devices, mocked_mini_provider):
 
 
 def test_filters_android_ver_intervals(test_devices, mocked_mini_provider):
+    test_devices = test_devices.values()
     filters = {"android_version__ge": "4.2", "android_version__le": "5.0"}
     devices = mocked_mini_provider.get_devices(filters)
     filtered_ids = [device.adb_id for device in devices]
@@ -62,6 +68,7 @@ def test_filters_android_ver_intervals(test_devices, mocked_mini_provider):
 
 
 def test_filters_sdk_ver_intarvals(test_devices, mocked_mini_provider):
+    test_devices = test_devices.values()
     filters = {"sdk_version__gt": 17, "sdk_version__lt": 22}
     devices = mocked_mini_provider.get_devices(filters)
     filtered_ids = [device.adb_id for device in devices]
@@ -122,3 +129,11 @@ wrong_operator_filters = [{
 def test_filters_wrong_operators(mocked_mini_provider, _filter):
     with pytest.raises(NotImplementedError):
         devices = mocked_mini_provider.get_devices(_filter)
+
+
+def test_acquire(mocked_mini_provider):
+    id = "device_2"
+    filters = {"adb_id": id}
+    devices = mocked_mini_provider.get_devices(filters)
+    mocked_mini_provider.acquire_device(devices[0])
+    assert mocked_mini_provider.devices[id].free == False

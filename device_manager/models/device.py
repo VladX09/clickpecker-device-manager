@@ -1,6 +1,7 @@
 import re
 import logging
 from device_manager import utils
+import copy
 
 logger = logging.getLogger("device_manager.device_record")
 
@@ -14,7 +15,8 @@ class Device:
                  sdk_version=None,
                  minicap_port=None,
                  minitouch_port=None,
-                 stf_address=None):
+                 stf_address=None,
+                 free=True):
         self.adb_id = adb_id
         self.device_name = device_name
         self.status = status
@@ -23,6 +25,7 @@ class Device:
         self.minicap_port = minicap_port
         self.minitouch_port = minitouch_port
         self.stf_address = stf_address
+        self.free = True
 
     @classmethod
     def from_dict(cls, dict):
@@ -69,3 +72,6 @@ class Device:
             "shell 'ps |grep {}'".format(name)).split('\n')
         pid = lines[0].split()[1]
         self.perform_adb_cmd("shell 'kill {}'".format(pid))
+
+    def copy(self):
+        return copy.copy(self)

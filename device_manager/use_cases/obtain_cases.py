@@ -13,5 +13,12 @@ def basic_use_case_validation(use_case, request, *args, **kwargs):
 @basic_use_case_validation
 def obtain_device(request, provider):
     filters = request.filters
+    filters["free"] = True
     devices = provider.get_devices(filters)
-    return responses.ResponseSuccess(devices)
+    if len(devices) > 0:
+        device = devices[0]
+        provider.acquire(device)
+        return responses.ResponseSuccess(device)
+    else:
+        return responses.ResponseFailure.resource_arror(
+            "No such device or device is busy")

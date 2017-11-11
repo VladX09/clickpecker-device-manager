@@ -6,7 +6,7 @@ from unittest import mock
 
 @pytest.fixture
 def test_devices():
-    devices = []
+    devices = {}
     statuses = ["offline", "device"]
     android_and_sdk = {
         "4.1.1": 16,
@@ -30,14 +30,18 @@ def test_devices():
         stf_address = "//stf/device/{}".format(i)
         device = Device(adb_id, device_name, status, android_version,
                         sdk_version, minicap_port, minitouch_port, stf_address)
-        devices.append(device)
+        devices[adb_id] = device
     return devices
 
 
 @pytest.fixture
 def mocked_mini_provider(test_devices):
     with mock.patch.object(
-            MiniDeviceProvider, "init_devices", autospec=True) as mock_init:
-        mock_init.return_value = test_devices
-        yield MiniDeviceProvider(1110, 1110 + 2 * len(test_devices),
+            MiniDeviceProvider, "_get_devices_from_adb",
+            autospec=True) as mock_get_devices_from_adb:
+        mock_get_devices_from_adb.return_value = test_devices
+        provider = MiniDeviceProvider(1110, 1110 + 2 * len(test_devices),
                                       "./minicap_root", "./minitouch_root")
+        # device_ids = [device.adb_id for device in test_devices]
+        # provider.devices = dict(zip(device_ids, test_devices))
+        yield provider
