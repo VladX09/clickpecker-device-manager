@@ -154,12 +154,21 @@ class MiniDeviceProvider(DeviceProvider):
     def _check_filter(self, device, key, value):
         if "__" not in key:
             key = key + "__eq"
-        key, operator = key.split("__")
-        field = getattr(device, key)
+        field_name, operator = key.split("__")
+        field = getattr(device, field_name)
 
         if operator in ["eq", "lt", "gt", "le", "ge"]:
             operator = "__{}__".format(operator)
-            return getattr(field, operator)(value)
+            result = getattr(field, operator)(value)
+            if result is NotImplemented:
+                raise TypeError("Wrong value type in filter: {}:{}".format(key,value))
+            return result
+
+        if operator == "ne":
+            result = not self._check_filter(device, field_name+"__eq", value)
+            return result
+
+        raise NotImplementedError("Operator '{}' is not implemented".format(operator))
 
     def get_devices(self, filters=None):
         devices = self.init_devices()
