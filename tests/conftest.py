@@ -42,6 +42,4 @@ def mocked_mini_provider(test_devices):
         mock_get_devices_from_adb.return_value = test_devices
         provider = MiniDeviceProvider(1110, 1110 + 2 * len(test_devices),
                                       "./minicap_root", "./minitouch_root")
-        # device_ids = [device.adb_id for device in test_devices]
-        # provider.devices = dict(zip(device_ids, test_devices))
         yield provider
