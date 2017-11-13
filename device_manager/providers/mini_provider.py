@@ -188,3 +188,6 @@ class MiniDeviceProvider(DeviceProvider):
 
     def acquire_device(self, device):
         self.devices[device.adb_id].free = False
+
+    def release_device(self, device):
+        self.devices[device.adb_id].free = True
