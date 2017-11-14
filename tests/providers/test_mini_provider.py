@@ -1,4 +1,3 @@
-from device_manager.providers.device_provider import get_provider
 from device_manager.providers.mini_provider import MiniDeviceProvider
 from unittest import mock
 import pytest
