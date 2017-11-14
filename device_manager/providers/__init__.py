@@ -1,4 +1,4 @@
-from mini_provider import MiniDeviceProvider
+from .mini_provider import MiniDeviceProvider
 from device_manager import utils
 
 __mini_provider_instance = None

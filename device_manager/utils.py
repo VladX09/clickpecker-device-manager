@@ -4,7 +4,10 @@ import logging
 import shlex
 import subprocess
 import logging
-import os
+import json
+
+from logging import config
+import os.path
 
 CONFIG_PATH = "configs/device_manager.conf"
 LOGGING_CONFIG_PATH = "configs/logger.json"

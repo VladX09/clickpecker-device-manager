@@ -4,7 +4,7 @@ import logging
 from pathlib import Path, PurePosixPath
 
 from device_manager.providers.device_provider import DeviceProvider
-from device_manager.models import device
+from device_manager.models.device import Device
 from device_manager import utils
 from device_manager.providers.ports_pool import PortsPool
 
@@ -141,13 +141,15 @@ class MiniDeviceProvider(DeviceProvider):
             if adb_id in self.devices:
                 device = self.devices[adb_id]
             else:
-                device = device.Device(adb_id=adb_id, status=status)
+                device = Device(adb_id=adb_id, status=status)
+            logger.info("Handle device")
             device.android_version = device.get_property(PROP_ANDROID_VERSION)
             device.sdk_version = int(device.get_property(PROP_SDK_VERSION))
             device.device_name = device.get_property(PROP_DEVICE_NAME)
             device.minicap_port = self.launch_minicap(device)
             device.minitouch_port = self.launch_minitouch(device)
             devices[adb_id] = device
+        logger.info("Collected Devices: {}".format(devices))
         return devices
 
     def _init_devices(self):
