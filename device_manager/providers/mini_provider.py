@@ -32,7 +32,7 @@ class MiniDeviceProvider(DeviceProvider):
         if port is not None:
             return port
 
-    # Get device's properties to choose right minitouch executable
+        # Get device's properties to choose right minitouch executable
         abi = device.get_property(PROP_ABI)
         if device.sdk_version >= 16:
             bin = "minitouch"
