@@ -35,6 +35,9 @@ class Device:
         args = {k: v for k, v in dict.items() if k in allowed}
         return cls(**args)
 
+    def __repr__(self):
+        return repr(self.__dict__)
+
     def perform_adb_cmd(self, cmd):
         return utils.perform_cmd("adb -s {} {}".format(self.adb_id, cmd))
 
