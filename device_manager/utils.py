@@ -4,6 +4,7 @@ import logging
 import shlex
 import subprocess
 import logging
+import os
 
 CONFIG_PATH = "configs/device_manager.conf"
 LOGGING_CONFIG_PATH = "configs/logger.json"
@@ -12,14 +13,15 @@ logger = logging.getLogger("device_manager.utils")
 
 
 def get_main_config():
-    conf_path = pathlib.Path(CONFIG_PATH)
+    conf_path = pathlib.Path(os.path.dirname(__file__)) / CONFIG_PATH
     config = configparser.ConfigParser()
     config.read(conf_path)
     return config
 
 
 def configure_logger():
-    with open(LOGGING_CONFIG_PATH) as f:
+    logging_path = pathlib.Path(os.path.dirname(__file__)) / LOGGING_CONFIG_PATH
+    with open(logging_path) as f:
         conf = json.load(f)
         logging.config.dictConfig(conf)
 
