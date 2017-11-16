@@ -18,11 +18,11 @@ def test_success(mocked_mini_provider):
 
 
 def test_fail_invalid_request(mocked_mini_provider):
-    request = DeviceObtainRequest.from_dict({"something": 1, "something": "2"})
+    request = DeviceObtainRequest.from_dict({"filters":1})
     response = acquire_device(request, mocked_mini_provider)
     assert not response.successfull()
     assert response.type == ResponseFailure.PARAMETERS_ERROR
-    assert "filters: field is absent" in response.message
+    assert "filters: is not" in response.message
 
 
 def test_fail_system_error(mocked_mini_provider):
