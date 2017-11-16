@@ -1,4 +1,4 @@
-from device_manager.use_cases.obtain_cases import acquire_device, release_device
+from device_manager.use_cases.obtain_cases import acquire_device, release_device, list_devices
 from device_manager.use_cases.requests import DeviceObtainRequest
 from device_manager.use_cases.responses import ResponseSuccess, ResponseFailure
 from device_manager.models.device import Device
@@ -18,7 +18,7 @@ def test_success(mocked_mini_provider):
 
 
 def test_fail_invalid_request(mocked_mini_provider):
-    request = DeviceObtainRequest.from_dict({"filters":1})
+    request = DeviceObtainRequest.from_dict({"filters": 1})
     response = acquire_device(request, mocked_mini_provider)
     assert not response.successfull()
     assert response.type == ResponseFailure.PARAMETERS_ERROR
@@ -57,7 +57,7 @@ def test_fail_resource_error(mocked_mini_provider):
     response = acquire_device(request, mocked_mini_provider)
     assert not response.successfull()
     assert response.type == ResponseFailure.RESOURCE_ERROR
-    assert "No such device" in response.message
+    assert "busy" in response.message
 
 
 def test_acquire_and_release(mocked_mini_provider):
@@ -81,8 +81,8 @@ def test_acquire_and_release(mocked_mini_provider):
     })
     response = release_device(request_release, mocked_mini_provider)
     assert response.successfull()
-    assert isinstance(response.value, Device)
-    assert response.value.adb_id == "device_6"
+    assert isinstance(response.value, str)
+    assert response.value == "Device was released"
 
     # Acquire again - device is free
     response = acquire_device(request_acquire, mocked_mini_provider)
@@ -94,3 +94,40 @@ def test_acquire_and_release(mocked_mini_provider):
     response = acquire_device(request_acquire, mocked_mini_provider)
     assert not response.successfull()
     assert "busy" in response.message
+
+
+def test_acquire_no_such_devices(mocked_mini_provider):
+    # Acquire device
+    request_acquire = DeviceObtainRequest.from_dict({
+        "filters": {
+            "android_version": "-1.0"
+        }
+    })
+    response = acquire_device(request_acquire, mocked_mini_provider)
+    assert not response.successfull()
+    assert response.message == "No such devices"
+
+
+def test_release_ambiguous_filter(mocked_mini_provider):
+    # Acquire device
+    request = DeviceObtainRequest.from_dict({
+        "filters": {
+            "android_version__ge": "4.0"
+        }
+    })
+    ids = []
+    for i in range(0, 2):
+        response = acquire_device(request, mocked_mini_provider)
+        assert response.successfull()
+        ids.append(response.value.adb_id)
+
+    response = release_device(request, mocked_mini_provider)
+    assert not response.successfull()
+    assert response.message == "Filter is ambiguous: 2 devices were found"
+
+    for id in ids:
+        request = DeviceObtainRequest.from_dict({"filters": {"adb_id": id}})
+        response = list_devices(request, mocked_mini_provider)
+        print(response.value)
+        assert response.successfull()
+        assert not response.value[0].free
