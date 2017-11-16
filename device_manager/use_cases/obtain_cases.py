@@ -14,7 +14,7 @@ def basic_use_case_validation(use_case):
 
 
 @basic_use_case_validation
-def get_device_list(request, provider):
+def list_devices(request, provider):
     filters = request.filters
     devices = provider.get_devices(filters)
     return responses.ResponseSuccess(devices)
@@ -23,7 +23,7 @@ def get_device_list(request, provider):
 @basic_use_case_validation
 def acquire_device(request, provider):
     request.filters["free"] = True
-    response = get_device_list(request, provider)
+    response = list_devices(request, provider)
     if not response.successfull():
         return response
 
@@ -40,7 +40,7 @@ def acquire_device(request, provider):
 @basic_use_case_validation
 def release_device(request, provider):
     request.filters["free"] = False
-    response = get_device_list(request, provider)
+    response = list_devices(request, provider)
     if not response.successfull():
         return response
 
