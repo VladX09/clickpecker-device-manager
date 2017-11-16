@@ -43,3 +43,11 @@ def mocked_mini_provider(test_devices):
         provider = MiniDeviceProvider(1110, 1110 + 2 * len(test_devices),
                                       "./minicap_root", "./minitouch_root")
         yield provider
+
+
+@pytest.fixture
+def mocked_get_mini_provider(mocked_mini_provider):
+    with mock.patch(
+            "device_manager.providers.get_provider") as mocked_get_provider:
+        mocked_get_provider.return_value = mocked_mini_provider
+        yield
