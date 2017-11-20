@@ -129,14 +129,30 @@ class MiniDeviceProvider(DeviceProvider):
             "forward tcp:{} localabstract:minicap".format(port))
         return port
 
+    def _check_device_is_allowed(self, adb_id):
+        whitelist = utils.get_whitelist_devices()
+        blacklist = utils.get_blacklist_devices()
+
+        if len(whitelist) > 0:
+            return adb_id in whitelist
+
+        if len(blacklist) > 0:
+            return adb_id not in blacklist
+
+        return True
+
     def _get_devices_from_adb(self):
         adb_devices_result = utils.perform_cmd("adb devices")
         devices = {}
         for line in adb_devices_result.split("\n"):
             line = line.strip()
+
             if ("*" in line or "List of" in line or not line):
                 continue
+
             adb_id, status = line.split("\t")
+            if not self._check_device_is_allowed(adb_id):
+                continue
 
             if adb_id in self.devices:
                 device = self.devices[adb_id]
@@ -149,10 +165,14 @@ class MiniDeviceProvider(DeviceProvider):
             device.minicap_port = self.launch_minicap(device)
             device.minitouch_port = self.launch_minitouch(device)
             devices[adb_id] = device
+
         logger.info("Collected Devices: {}".format(devices))
         return devices
 
     def _init_devices(self):
+        logger.info(
+            "Start devices (re)initialisation:\nWhitelist:{}\nBlacklist:{}".
+            format(utils.get_blacklist_devices(), utils.get_whitelist_devices))
         self.devices = self._get_devices_from_adb()
         return self.devices
 
@@ -189,7 +209,9 @@ class MiniDeviceProvider(DeviceProvider):
         return devices
 
     def acquire_device(self, device):
+        logger.info("Acquire device {}".format(device.adb_id))
         self.devices[device.adb_id].free = False
 
     def release_device(self, device):
+        logger.info("Release device {}".format(device.adb_id))
         self.devices[device.adb_id].free = True
