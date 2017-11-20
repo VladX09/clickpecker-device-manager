@@ -13,17 +13,19 @@ def test_get(mocked_get_mini_provider, test_devices):
     assert len(devices) == len(test_devices)
 
 
-def test_post_empty(mocked_get_mini_provider, test_devices):
+@pytest.mark.parametrize("route", ["/", "/acquire", "/release"])
+def test_post_empty(route, mocked_get_mini_provider, test_devices):
     client = app.app.test_client()
-    response = client.post("/")
+    response = client.post(route)
 
     assert response.status_code == 400
     assert "Invalid POST" in json.loads(response.get_data())["error"]
 
 
-def test_post_json_none(mocked_get_mini_provider, test_devices):
+@pytest.mark.parametrize("route", ["/", "/acquire", "/release"])
+def test_post_json_none(route, mocked_get_mini_provider, test_devices):
     client = app.app.test_client()
-    response = client.post("/", data=json.dumps(None), content_type="application/json")
+    response = client.post(route, data=json.dumps(None), content_type="application/json")
 
     assert response.status_code == 400
     assert "Invalid POST" in json.loads(response.get_data())["error"]
@@ -75,6 +77,7 @@ def test_post_valid_filter(mocked_get_mini_provider, test_devices):
     assert devices == expected_devices
 
 
+@pytest.mark.parametrize("route", ["/", "/acquire", "/release"])
 @pytest.mark.parametrize("filters, status_code, msg", [
     ({"sdk_version__in": [11, 12]}, 500, "NotImplementedError"),
     ({"junk_param":12}, 500,"AttributeError"),
@@ -86,6 +89,7 @@ def test_post_valid_filter(mocked_get_mini_provider, test_devices):
 ])
 def test_post_invalid_filter(
         mocked_get_mini_provider,
+        route,
         test_devices,
         filters,
         status_code,
@@ -93,7 +97,7 @@ def test_post_invalid_filter(
 ):
     client = app.app.test_client()
     response = client.post(
-        "/", data=json.dumps({"filters": filters}), content_type="application/json")
+        route, data=json.dumps({"filters": filters}), content_type="application/json")
 
     assert response.status_code == status_code
     assert msg in json.loads(response.get_data())["error"]
