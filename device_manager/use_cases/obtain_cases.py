@@ -40,7 +40,7 @@ def acquire_device(request, provider):
 
     device = free_devices[0]
     provider.acquire_device(device)
-    logger.info("Device '{}' acquired".format(device.adb_id))
+    logger.info("Device '{}' was acquired".format(device.adb_id))
     return responses.ResponseSuccess(device)
 
 
