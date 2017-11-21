@@ -18,7 +18,7 @@
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "single-line",
-            "filename": "logs/file_handler.log",
+            "filename": "../logs/file_handler.log",
             "mode": "a",
             "encoding": "utf-8",
             "maxBytes": 2097152,
