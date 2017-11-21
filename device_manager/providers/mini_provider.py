@@ -28,7 +28,7 @@ class MiniDeviceProvider(DeviceProvider):
     def launch_minitouch(self, device):
 
         # Check if minitouch was launched alraedy
-        port = self._check_app(device, "minitouch")
+        port = self._check_app(device, "minitouch", device.minitouch_port)
         if port is not None:
             return port
 
@@ -60,22 +60,22 @@ class MiniDeviceProvider(DeviceProvider):
             "forward tcp:{} localabstract:minitouch".format(port))
         return port
 
-    def _check_app(self, device, name):
-        app_running = device.check_app_running("minicap")
-        port_exists = device.minicap_port is not None
+    def _check_app(self, device, name, port):
+        app_running = device.check_app_running(name)
+        port_exists = port is not None
 
         if app_running and port_exists:
-            return device.minicap_port
+            return port
         if app_running and not port_exists:
             device.kill_app("minicap")
         if not app_running and port_exists:
-            self.ports_pool.release_port(device.minicap_port)
+            self.ports_pool.release_port(port)
         return None
 
     def launch_minicap(self, device):
 
         # Check if minicap was launched alraedy
-        port = self._check_app(device, "minicap")
+        port = self._check_app(device, "minicap", device.minicap_port)
         if port is not None:
             return port
 
@@ -172,7 +172,7 @@ class MiniDeviceProvider(DeviceProvider):
     def _init_devices(self):
         logger.info(
             "Start devices (re)initialisation:\nWhitelist:{}\nBlacklist:{}".
-            format(utils.get_blacklist_devices(), utils.get_whitelist_devices))
+            format(utils.get_whitelist_devices(), utils.get_blacklist_devices()))
         self.devices = self._get_devices_from_adb()
         return self.devices
 
