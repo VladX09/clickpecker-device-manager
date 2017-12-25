@@ -67,7 +67,7 @@ class MiniDeviceProvider(DeviceProvider):
         if app_running and port_exists:
             return port
         if app_running and not port_exists:
-            device.kill_app("minicap")
+            device.kill_app(name)
         if not app_running and port_exists:
             self.ports_pool.release_port(port)
         return None
