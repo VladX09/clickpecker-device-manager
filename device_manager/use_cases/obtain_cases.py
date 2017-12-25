@@ -61,4 +61,4 @@ def release_device(request, provider):
         device = devices[0]
         provider.release_device(device)
 
-    return responses.ResponseSuccess("Device was released")
+    return responses.ResponseSuccess("Device {} was released".format(device.adb_id))
