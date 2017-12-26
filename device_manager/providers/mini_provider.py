@@ -82,7 +82,7 @@ class MiniDeviceProvider(DeviceProvider):
         # Get device's properties to choose right minicap executable
         abi = device.get_property(PROP_ABI)
         pre = device.get_property(PROP_PREVIEW)
-        if pre:
+        if float(pre):
             sdk = device.sdk_version + 1
         else:
             sdk = device.sdk_version
