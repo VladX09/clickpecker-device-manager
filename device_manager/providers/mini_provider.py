@@ -26,6 +26,7 @@ class MiniDeviceProvider(DeviceProvider):
         self.devices = {}
 
     def launch_minitouch(self, device):
+        logger.debug("Launching minicap on {}".format(device.adb_id))
 
         # Check if minitouch was launched alraedy
         port = self._check_app(device, "minitouch", device.minitouch_port)
@@ -34,6 +35,8 @@ class MiniDeviceProvider(DeviceProvider):
 
         # Get device's properties to choose right minitouch executable
         abi = device.get_property(PROP_ABI)
+        logger.debug("PROP_ABI: {}".format(abi))
+
         if device.sdk_version >= 16:
             bin = "minitouch"
         else:
@@ -49,6 +52,9 @@ class MiniDeviceProvider(DeviceProvider):
         # Launch minitouch
         start_cmd = "adb -s {id} shell {path}".format(
             id=device.adb_id, path=device_dir / bin)
+
+        logger.debug("Start_cmd: '{}'".format(device.adb_id, start_cmd))
+
         subprocess.Popen(
             shlex.split(start_cmd),
             stderr=subprocess.DEVNULL,
@@ -73,6 +79,7 @@ class MiniDeviceProvider(DeviceProvider):
         return None
 
     def launch_minicap(self, device):
+        logger.debug("Launching minicap on {}".format(device.adb_id))
 
         # Check if minicap was launched alraedy
         port = self._check_app(device, "minicap", device.minicap_port)
@@ -82,10 +89,13 @@ class MiniDeviceProvider(DeviceProvider):
         # Get device's properties to choose right minicap executable
         abi = device.get_property(PROP_ABI)
         pre = device.get_property(PROP_PREVIEW)
-        if float(pre):
+        logger.debug("PROP_ABI: {}".format(abi))
+        logger.debug("PROP_PREVIEW: {}".format(pre))
+        if pre and float(pre):
             sdk = device.sdk_version + 1
         else:
             sdk = device.sdk_version
+        logger.debug("PROP_SDK: {}".format(sdk))
         rel = device.android_version
         if sdk >= 16:
             bin = "minicap"
@@ -114,8 +124,7 @@ class MiniDeviceProvider(DeviceProvider):
         # Launch minicap
         start_cmd = "adb -s {id} shell LD_LIBRARY_PATH={dir} {dir}/{bin} {args}".format(
             id=device.adb_id, dir=device_dir, bin=bin, args=args)
-        logger.debug("Device: {} starting; Start_cmd: '{}'".format(
-            device.adb_id, start_cmd))
+        logger.debug("Start_cmd: '{}'".format(device.adb_id, start_cmd))
 
         subprocess.Popen(
             shlex.split(start_cmd),
@@ -172,7 +181,8 @@ class MiniDeviceProvider(DeviceProvider):
     def _init_devices(self):
         logger.info(
             "Start devices (re)initialisation:\nWhitelist:{}\nBlacklist:{}".
-            format(utils.get_whitelist_devices(), utils.get_blacklist_devices()))
+            format(utils.get_whitelist_devices(),
+                   utils.get_blacklist_devices()))
         self.devices = self._get_devices_from_adb()
         return self.devices
 
@@ -185,6 +195,8 @@ class MiniDeviceProvider(DeviceProvider):
         if operator in ["eq", "lt", "gt", "le", "ge"]:
             operator = "__{}__".format(operator)
             result = getattr(field, operator)(value)
+            logger.debug("Check filter: {field}.{op}({val}) == {res}".format(
+                field=field, op=operator, val=value, res=result))
             if result is NotImplemented:
                 raise TypeError("Wrong value type in filter: {}:{}".format(
                     key, value))
