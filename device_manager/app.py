@@ -46,9 +46,10 @@ def _handle_obtain_request(request, use_case):
             return Response(
                 json.dumps({"error":"Invalid POST body. Please, check your request body and content type."}),
                 status=400)
-        logger.info("POST request body: {}".format(body))
+        logger.info("Receiving POST request with body: {}".format(body))
         case_request = requests.DeviceObtainRequest.from_dict(body)
     else:
+        logger.info("Receiving GET request".format(body))
         case_request = requests.DeviceObtainRequest.from_dict({})
 
     case_response = use_case(case_request, provider)
@@ -60,6 +61,7 @@ def _prepare_obtain_response(case_response):
         body = json.dumps(case_response.value, cls=DeviceEncoder)
     else:
         body = json.dumps({"error": case_response.message})
+    logger.info("Sending response with body: {}".format(body))
     return Response(
         body,
         mimetype="application/json",

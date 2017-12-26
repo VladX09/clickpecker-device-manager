@@ -1,5 +1,7 @@
-from device_manager.use_cases import responses
 import logging
+import traceback
+
+from device_manager.use_cases import responses
 
 logger = logging.getLogger("device_manager.use_cases")
 
@@ -10,6 +12,7 @@ def basic_use_case_validation(use_case):
         try:
             return use_case(request, *args, **kwargs)
         except Exception as e:
+            logger.debug(traceback.format_exc())
             return responses.ResponseFailure.system_error(e)
 
     return wrapped
@@ -18,6 +21,7 @@ def basic_use_case_validation(use_case):
 @basic_use_case_validation
 def list_devices(request, provider):
     filters = request.filters
+    logger.debug("Obtaining with filters: {}".format(filters))
     devices = provider.get_devices(filters)
     return responses.ResponseSuccess(devices)
 
