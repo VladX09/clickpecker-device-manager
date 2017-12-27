@@ -1,7 +1,9 @@
+import pytest
+
+from packaging import version
 from flask import Flask, json
 from device_manager import app
 from unittest import mock
-import pytest
 
 
 def test_get(mocked_get_mini_provider, test_devices):
@@ -71,7 +73,7 @@ def test_post_valid_filter(mocked_get_mini_provider, test_devices):
     devices = json.loads(response.get_data())
     expected_devices = {
         id
-        for id, dev in test_devices.items() if dev.android_version >= "4.4.4"
+        for id, dev in test_devices.items() if dev.android_version >= version.parse("4.4.4")
     }
     devices = {dev["adb_id"] for dev in devices}
     assert devices == expected_devices

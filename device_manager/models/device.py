@@ -1,7 +1,9 @@
 import re
 import logging
-from device_manager import utils
 import copy
+
+from packaging import version
+from device_manager import utils
 
 logger = logging.getLogger("device_manager.device_record")
 
@@ -27,12 +29,20 @@ class Device:
         self.stf_address = stf_address
         self.free = True
 
+    @property
+    def android_version(self):
+        return self._android_version
+
+    @android_version.setter
+    def android_version(self, value):
+        self._android_version = None if value is None else version.parse(value)
+
     @classmethod
-    def from_dict(cls, dict):
+    def from_dict(cls, data):
         allowed = ("adb_id", "device_name", "status", "android_version",
                    "sdk_version", "minicap_port", "minitouch_port",
                    "stf_address")
-        args = {k: v for k, v in dict.items() if k in allowed}
+        args = {k: v for k, v in data.items() if k in allowed}
         return cls(**args)
 
     def __repr__(self):

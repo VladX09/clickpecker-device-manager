@@ -1,6 +1,8 @@
+import pytest
+
+from packaging import version
 from device_manager.models.device import Device
 from unittest import mock
-import pytest
 
 device_spec = {
     "adb_id": "test_id",
@@ -20,7 +22,7 @@ def test_from_dict():
     assert device.adb_id == device_spec["adb_id"]
     assert device.device_name == device_spec["device_name"]
     assert device.status == device_spec["status"]
-    assert device.android_version == device_spec["android_version"]
+    assert device.android_version == version.parse(device_spec["android_version"])
     assert device.sdk_version == device_spec["sdk_version"]
     assert device.minicap_port == device_spec["minicap_port"]
     assert device.minitouch_port == device_spec["minitouch_port"]

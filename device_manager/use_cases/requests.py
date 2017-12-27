@@ -1,4 +1,5 @@
 import collections
+from packaging import version
 
 
 class ValidRequest(object):
@@ -29,10 +30,10 @@ class DeviceObtainRequest(ValidRequest):
         self.filters = filters
 
     @classmethod
-    def from_dict(cls, dict_):
+    def from_dict(cls, data):
         invalid_req = InvalidRequest()
 
-        if 'filters' in dict_ and not isinstance(dict_['filters'],
+        if 'filters' in data and not isinstance(data['filters'],
                                                  collections.Mapping):
             invalid_req.add_error('filters', 'is not a {}'.format(
                 collections.Mapping))
@@ -40,4 +41,16 @@ class DeviceObtainRequest(ValidRequest):
         if invalid_req.has_errors():
             return invalid_req
 
-        return DeviceObtainRequest(filters=dict_.get('filters', None))
+        filters = data.get('filters', None)
+        if filters is not None:
+            filters = DeviceObtainRequest.format_filters(filters)
+
+        return DeviceObtainRequest(filters)
+
+    @staticmethod
+    def format_filters(original_filters):
+        formatted_filters = dict(original_filters)
+        for k,v in original_filters.items():
+            if "android_version" in k:
+                formatted_filters[k] = version.parse(v)
+        return formatted_filters

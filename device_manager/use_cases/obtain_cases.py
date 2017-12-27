@@ -5,6 +5,7 @@ from device_manager.use_cases import responses
 
 logger = logging.getLogger("device_manager.use_cases")
 
+
 def basic_use_case_validation(use_case):
     def wrapped(request, *args, **kwargs):
         if not request.valid():
@@ -58,8 +59,7 @@ def release_device(request, provider):
     devices = response.value
     if len(devices) > 1:
         return responses.ResponseFailure.parameters_error(
-            "Filter is ambiguous: {} devices were found".format(
-                len(devices)))
+            "Filter is ambiguous: {} devices were found".format(len(devices)))
 
     if len(devices) == 1:
         device = devices[0]
@@ -69,4 +69,3 @@ def release_device(request, provider):
         msg = "Device is unplugged"
 
     return responses.ResponseSuccess(msg)
-

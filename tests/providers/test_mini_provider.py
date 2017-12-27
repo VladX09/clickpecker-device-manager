@@ -1,6 +1,8 @@
+import pytest
+
+from packaging import version
 from device_manager.providers.mini_provider import MiniDeviceProvider
 from unittest import mock
-import pytest
 
 
 @pytest.mark.parametrize("_filter", [None, {}])
@@ -48,25 +50,25 @@ def test_filters_operations(test_devices, mocked_mini_provider):
         [device for device in test_devices if device.sdk_version != 19])
 
 
-@pytest.mark.WIP
 def test_filters_android_ver_intervals(test_devices, mocked_mini_provider):
-    # TODO: add packaging.parse_version() here after fix in the main package
     test_devices = test_devices.values()
-    filters = {"android_version__ge": "4.2", "android_version__le": "5.0"}
+    filters = {
+        "android_version__ge": version.parse("4.2"),
+        "android_version__le": version.parse("5.0")
+    }
     devices = mocked_mini_provider.get_devices(filters)
     filtered_ids = [device.adb_id for device in devices]
     not_filtered_devices = [
         device for device in test_devices if device.adb_id not in filtered_ids
     ]
+
     for filtered in devices:
         android_version = filtered.android_version
-        assert ("4.2" in android_version or "4.3" in android_version
-                or "4.4" in android_version or "5.0" in android_version)
+        assert android_version >= version.parse("4.2") and android_version <= version.parse("5.0")
+
     for remain in not_filtered_devices:
         android_version = remain.android_version
-        assert not ("4.2" in android_version or "4.3" in android_version
-                    or "4.4" in android_version or "5.0" in android_version)
-
+        assert android_version <= version.parse("4.2") or android_version >= version.parse("5.0")
 
 def test_filters_sdk_ver_intarvals(test_devices, mocked_mini_provider):
     test_devices = test_devices.values()

@@ -134,7 +134,6 @@ def test_release_ambiguous_filter(mocked_mini_provider):
         assert not response.value[0].free
 
 
-@pytest.mark.WIP
 def test_big_android_version(mocked_mini_provider):
     # Check if necessary item is in test data
     original_versions = [
