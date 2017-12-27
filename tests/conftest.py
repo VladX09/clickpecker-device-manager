@@ -18,7 +18,8 @@ def test_devices():
         "5.0": 21,
         "5.1": 22,
         "8.0.0": 26,
-        "8.0": 26
+        "8.0": 26,
+        "20.5.0":45
     }
     for i, (android_version,
             sdk_version) in enumerate(android_and_sdk.items()):

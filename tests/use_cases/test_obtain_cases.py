@@ -1,3 +1,4 @@
+import pytest
 from device_manager.use_cases.obtain_cases import acquire_device, release_device, list_devices
 from device_manager.use_cases.requests import DeviceObtainRequest
 from device_manager.use_cases.responses import ResponseSuccess, ResponseFailure
@@ -131,3 +132,24 @@ def test_release_ambiguous_filter(mocked_mini_provider):
         print(response.value)
         assert response.successfull()
         assert not response.value[0].free
+
+
+def test_big_android_version(mocked_mini_provider):
+    # Check if necessary item is in test data
+    original_versions = [
+        str(dev.android_version)
+        for dev in mocked_mini_provider._get_devices_from_adb().values()
+    ]
+    assert "20.5.0" in original_versions
+
+    # Test case
+    request = DeviceObtainRequest.from_dict({
+        "filters": {
+            "android_version__ge": "6.0"
+        }
+    })
+    response = list_devices(request, mocked_mini_provider)
+    assert response.successfull()
+    versions = [str(dev.android_version) for dev in response.value]
+    print(versions)
+    assert "20.5.0" in versions
