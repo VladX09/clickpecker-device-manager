@@ -64,5 +64,9 @@ def release_device(request, provider):
     if len(devices) == 1:
         device = devices[0]
         provider.release_device(device)
+        msg = "Device {} was released".format(device.adb_id)
+    else:
+        msg = "Device is unplugged"
 
-    return responses.ResponseSuccess("Device {} was released".format(device.adb_id))
+    return responses.ResponseSuccess(msg)
+

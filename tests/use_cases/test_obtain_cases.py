@@ -83,7 +83,7 @@ def test_acquire_and_release(mocked_mini_provider):
     response = release_device(request_release, mocked_mini_provider)
     assert response.successfull()
     assert isinstance(response.value, str)
-    assert response.value == "Device was released"
+    assert response.value == "Device {} was released".format("device_6")
 
     # Acquire again - device is free
     response = acquire_device(request_acquire, mocked_mini_provider)
@@ -134,6 +134,7 @@ def test_release_ambiguous_filter(mocked_mini_provider):
         assert not response.value[0].free
 
 
+@pytest.mark.WIP
 def test_big_android_version(mocked_mini_provider):
     # Check if necessary item is in test data
     original_versions = [

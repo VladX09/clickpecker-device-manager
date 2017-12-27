@@ -48,7 +48,9 @@ def test_filters_operations(test_devices, mocked_mini_provider):
         [device for device in test_devices if device.sdk_version != 19])
 
 
+@pytest.mark.WIP
 def test_filters_android_ver_intervals(test_devices, mocked_mini_provider):
+    # TODO: add packaging.parse_version() here after fix in the main package
     test_devices = test_devices.values()
     filters = {"android_version__ge": "4.2", "android_version__le": "5.0"}
     devices = mocked_mini_provider.get_devices(filters)

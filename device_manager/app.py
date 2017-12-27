@@ -49,7 +49,7 @@ def _handle_obtain_request(request, use_case):
         logger.info("Receiving POST request with body: {}".format(body))
         case_request = requests.DeviceObtainRequest.from_dict(body)
     else:
-        logger.info("Receiving GET request".format(body))
+        logger.info("Receiving GET request")
         case_request = requests.DeviceObtainRequest.from_dict({})
 
     case_response = use_case(case_request, provider)
