@@ -45,6 +45,18 @@ class Device:
         args = {k: v for k, v in data.items() if k in allowed}
         return cls(**args)
 
+    def to_dict(self):
+        data = dict(self.__dict__)
+
+        # Convert specific properties
+        android_version = data.pop("_android_version", None)
+        if android_version is None:
+            data["android_version"] = None
+        else:
+            data["android_version"] = str(android_version)
+
+        return data
+
     def __repr__(self):
         return repr(self.__dict__)
 
