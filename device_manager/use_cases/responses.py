@@ -10,7 +10,8 @@ class ResponseSuccess(object):
 
 
 class ResponseFailure(object):
-    RESOURCE_ERROR = 'RESOURCE_ERROR'
+    RESOURCE_ERROR_NOT_FOUND = 'RESOURCE_ERROR_NOT_FOUND'
+    RESOURCE_ERROR_BUSY = 'RESOURCE_ERROR_BUSY'
     PARAMETERS_ERROR = 'PARAMETERS_ERROR'
     SYSTEM_ERROR = 'SYSTEM_ERROR'
 
@@ -31,8 +32,12 @@ class ResponseFailure(object):
         return {'type': self.type, 'message': self.message}
 
     @classmethod
-    def resource_error(cls, message=None):
-        return cls(cls.RESOURCE_ERROR, message)
+    def resource_error_not_found(cls, message=None):
+        return cls(cls.RESOURCE_ERROR_NOT_FOUND, message)
+
+    @classmethod
+    def resource_error_busy(cls, message=None):
+        return cls(cls.RESOURCE_ERROR_BUSY, message)
 
     @classmethod
     def system_error(cls, message=None):

@@ -56,8 +56,9 @@ def test_acquire_release(mocked_get_mini_provider, test_devices):
     response_acq = client.post("/acquire", data=req, content_type="application/json")
     assert response_acq.status_code == 200
 
+    # Try to acquire again - device is busy
     response_acq_fail = client.post("/acquire", data=req, content_type="application/json")
-    assert response_acq_fail.status_code == 404
+    assert response_acq_fail.status_code == 409
     assert json.loads(response_acq_fail.get_data())["error"] == "All such devices are busy"
 
     response_rel = client.post("/release", data=req, content_type="application/json")

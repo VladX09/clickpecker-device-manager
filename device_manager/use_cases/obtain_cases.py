@@ -36,11 +36,12 @@ def acquire_device(request, provider):
 
     devices = response.value
     if len(devices) == 0:
-        return responses.ResponseFailure.resource_error("No such devices")
+        return responses.ResponseFailure.resource_error_not_found(
+            "No such devices")
 
     free_devices = [dev for dev in devices if dev.free]
     if len(free_devices) == 0:
-        return responses.ResponseFailure.resource_error(
+        return responses.ResponseFailure.resource_error_busy(
             "All such devices are busy")
 
     device = free_devices[0]

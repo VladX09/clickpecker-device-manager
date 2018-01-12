@@ -57,7 +57,7 @@ def test_fail_resource_error(mocked_mini_provider):
     # Acquire again - device is busy
     response = acquire_device(request, mocked_mini_provider)
     assert not response.successfull()
-    assert response.type == ResponseFailure.RESOURCE_ERROR
+    assert response.type == ResponseFailure.RESOURCE_ERROR_BUSY
     assert "busy" in response.message
 
 

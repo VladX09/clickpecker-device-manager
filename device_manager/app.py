@@ -16,7 +16,8 @@ logger = logging.getLogger("device_manager")
 
 STATUS_CODES = {
     responses.ResponseSuccess.SUCCESS: 200,
-    responses.ResponseFailure.RESOURCE_ERROR: 404,
+    responses.ResponseFailure.RESOURCE_ERROR_NOT_FOUND: 404,
+    responses.ResponseFailure.RESOURCE_ERROR_BUSY: 409,
     responses.ResponseFailure.PARAMETERS_ERROR: 400,
     responses.ResponseFailure.SYSTEM_ERROR: 500
 }
