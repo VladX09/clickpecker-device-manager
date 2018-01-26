@@ -26,7 +26,7 @@ class MiniDeviceProvider(DeviceProvider):
         self.devices = {}
 
     def launch_minitouch(self, device):
-        logger.debug("Launching minicap on {}".format(device.adb_id))
+        logger.debug("Launching minitouch on {}".format(device.adb_id))
 
         # Check if minitouch was launched alraedy
         port = self._check_app(device, "minitouch", device.minitouch_port)
