@@ -56,4 +56,4 @@ RUN apt-get update && apt-get install -y \
 RUN python3.6 -m pip install --upgrade pip \
     && python3.6 -m pip install -r /root/requirements.txt
 WORKDIR /srv
-CMD /run.sh
+CMD ./run.sh
