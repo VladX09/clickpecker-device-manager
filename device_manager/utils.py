@@ -13,15 +13,15 @@ CONFIG_PATH = "configs/device_manager.conf"
 LOGGING_CONFIG_PATH = "configs/logger.json"
 
 logger = logging.getLogger("device_manager.utils")
-
+proj_dir = pathlib.Path(os.path.dirname(__file__)).parent
 
 def get_config_path():
-    path = pathlib.Path(os.path.dirname(__file__)) / CONFIG_PATH
+    path =  proj_dir / CONFIG_PATH
     return path
 
 
 def get_logging_config_path():
-    path = pathlib.Path(os.path.dirname(__file__)) / LOGGING_CONFIG_PATH
+    path = proj_dir / LOGGING_CONFIG_PATH
     return path
 
 
@@ -45,7 +45,8 @@ def get_blacklist_devices():
 def configure_logger():
     def filename_parse_hook(data):
         if data.get("filename") is not None:
-            filename = pathlib.Path(data["filename"]).expanduser()
+            filename = pathlib.Path(data["filename"])
+            filename = proj_dir / filename
             filename.parent.mkdir(parents=True, exist_ok=True)
             data["filename"] = filename
         return data
