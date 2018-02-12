@@ -1,6 +1,6 @@
 {
     "version": 1,
-    "disable_existing_loggers": true,
+    "disable_existing_loggers": false,
     "formatters": {
         "single-line": {
             "class": "logging.Formatter",
@@ -18,7 +18,7 @@
             "level": "DEBUG",
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "single-line",
-            "filename": "logs/file_handler.log",
+            "filename": "~/clickpecker_dm_logs/debug.log",
             "mode": "a",
             "encoding": "utf-8",
             "maxBytes": 2097152,

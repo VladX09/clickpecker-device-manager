@@ -5,7 +5,7 @@ import shlex
 import subprocess
 import logging
 import json
-import os.path
+import os
 
 from logging import config
 
@@ -16,11 +16,13 @@ logger = logging.getLogger("device_manager.utils")
 
 
 def get_config_path():
-    return pathlib.Path(os.path.dirname(__file__)) / CONFIG_PATH
+    path = pathlib.Path(os.path.dirname(__file__)) / CONFIG_PATH
+    return path
 
 
 def get_logging_config_path():
-    return pathlib.Path(os.path.dirname(__file__)) / LOGGING_CONFIG_PATH
+    path = pathlib.Path(os.path.dirname(__file__)) / LOGGING_CONFIG_PATH
+    return path
 
 
 def get_main_config():
@@ -41,9 +43,16 @@ def get_blacklist_devices():
 
 
 def configure_logger():
+    def filename_parse_hook(data):
+        if data.get("filename") is not None:
+            filename = pathlib.Path(data["filename"]).expanduser()
+            filename.parent.mkdir(parents=True, exist_ok=True)
+            data["filename"] = filename
+        return data
+
     logging_path = get_logging_config_path()
     with open(logging_path) as f:
-        conf = json.load(f)
+        conf = json.load(f, object_hook=filename_parse_hook)
         logging.config.dictConfig(conf)
 
 
