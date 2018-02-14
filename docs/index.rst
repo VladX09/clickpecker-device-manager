@@ -7,6 +7,17 @@
 Welcome to Clickpecker Device Manager's documentation!
 ======================================================
 
+Launching
+=========
+
+Use ``docker`` and ``docker-compose`` to launch the device manager::
+
+  docker-compose up -d --build
+
+Device manager will be available from ``127.0.0.1/5000``.
+
+Image building proccess may take a long time because of ``minicap`` and ``minitouch`` building.
+
 API Reference
 =============
 
