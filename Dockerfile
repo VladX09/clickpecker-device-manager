@@ -39,7 +39,6 @@ RUN curl -o /root/platform-tools.zip https://dl.google.com/android/repository/pl
 
 # ===================== MAIN IMAGE =======================
 FROM ubuntu:16.04
-VOLUME /srv
 COPY --from=stf_builder /root/openstf /root/sdk/openstf
 COPY --from=stf_builder /root/platform-tools /root/platform-tools
 COPY requirements.txt /root/
