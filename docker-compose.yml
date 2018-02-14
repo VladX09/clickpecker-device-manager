@@ -1,0 +1,11 @@
+version: "3"
+services:
+  device_manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - "./:/srv"
+    network_mode: "host"
+    container_name: device_manager 
+
