@@ -1,0 +1,7 @@
+formats:
+  - none
+requirements_file: requirements-doc.txt
+build:
+  image: latest
+python:
+  version: 3.6
