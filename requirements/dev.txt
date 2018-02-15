@@ -1,4 +1,4 @@
--r requirements.txt
+-r common.txt
 autoflake==1.0
 py==1.4.34
 pyflakes==1.6.0
