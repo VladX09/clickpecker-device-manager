@@ -10,7 +10,7 @@ python:
 
 env:
   global:
-    - REPO=REPO=vladx09/clickpecker_device_manager
+    - REPO=vladx09/clickpecker-device-manager
 
 branches:
   only:
