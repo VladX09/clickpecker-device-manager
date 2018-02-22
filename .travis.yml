@@ -19,6 +19,6 @@ branches:
 script:
   - pytest ./tests
   - docker login -u $DOCKER_USER -p $DOCKER_PASS
-  - docker build $REPO:latest_nosrc .
+  - docker build -t $REPO:latest_nosrc .
   - docker tag $REPO:latest_nosrc $REPO:latest
   - docker push $REPO
