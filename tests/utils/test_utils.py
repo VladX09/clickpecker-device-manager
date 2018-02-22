@@ -15,7 +15,7 @@ def test_logging_config_path():
 def test_main_config():
     config = utils.get_main_config()
     items = [
-        "type", "start_port", "max_devices", "minicap_root", "minitouch_root",
+        "start_port", "max_devices", "minicap_root", "minitouch_root",
         "whitelist_devices", "blacklist_devices"
     ]
     for item in items:
