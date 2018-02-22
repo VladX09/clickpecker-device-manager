@@ -14,7 +14,7 @@ RUN mkdir /root/.android \
     && touch ~/.android/repositories.cfg \
     && mkdir $SDK \
     && curl -o $SDK/ndk.zip https://dl.google.com/android/repository/android-ndk-r15-linux-x86_64.zip \
-    && unzip $SDK/ndk.zip -d $SDK
+    && unzip -qq $SDK/ndk.zip -d $SDK
 ENV PATH $SDK/android-ndk-r15:$PATH
 # Download and Build OpenSTF minicap 
 ENV OPENSTF /root/openstf
