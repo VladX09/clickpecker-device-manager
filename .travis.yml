@@ -1,0 +1,24 @@
+sudo: required
+
+services:
+  - docker
+
+language: python
+
+python:
+  - "3.6"
+
+env:
+  global:
+    - REPO=REPO=vladx09/clickpecker_device_manager
+
+branches:
+  only:
+    - master
+
+script:
+  - pytest ./tests
+  - docker login -u $DOCKER_USER -p $DOCKER_PASS
+  - docker build -f Dockerfile -t $REPO:latest_nosrc
+  - docker tag $REPO:latest_nosrc $REPO:latest
+  - docker push $REPO
