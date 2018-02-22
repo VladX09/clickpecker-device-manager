@@ -8,10 +8,6 @@ language: python
 python:
   - "3.6"
 
-env:
-  global:
-    - REPO=vladx09/clickpecker-device-manager
-
 branches:
   only:
     - master
