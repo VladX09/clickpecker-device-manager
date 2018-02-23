@@ -52,7 +52,8 @@ RUN apt-get update -qq && apt-get install -yqq \
        python3.6-dev \
        python3-pip \
        python3.6-venv
+WORKDIR /root
 RUN python3.6 -m pip install --upgrade pip \
-    && python3.6 -m pip install -r /root/requirements.txt
+    && python3.6 -m pip install -r requirements.txt
 WORKDIR /srv
 CMD ./run.sh
