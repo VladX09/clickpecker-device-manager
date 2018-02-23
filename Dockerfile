@@ -39,9 +39,11 @@ RUN curl -o /root/platform-tools.zip https://dl.google.com/android/repository/pl
 
 # ===================== MAIN IMAGE =======================
 FROM ubuntu:16.04
-COPY --from=stf_builder /root/openstf /root/sdk/openstf
-COPY --from=stf_builder /root/platform-tools /root/platform-tools
-COPY requirements.txt /root
+COPY --from=stf_builder /root/openstf /root/sdk/openstf/
+COPY --from=stf_builder /root/platform-tools /root/platform-tools/
+COPY ./requirements.txt /root/
+COPY ./requirements/* /root/requirements/
+
 ENV PATH /root/platform-tools:$PATH
 RUN apt-get update -qq && apt-get install -yqq \
        python-software-properties \
@@ -52,8 +54,7 @@ RUN apt-get update -qq && apt-get install -yqq \
        python3.6-dev \
        python3-pip \
        python3.6-venv
-WORKDIR /root
 RUN python3.6 -m pip install --upgrade pip \
-    && python3.6 -m pip install -r requirements.txt
+    && python3.6 -m pip install -r /root/requirements.txt
 WORKDIR /srv
 CMD ./run.sh
