@@ -1,7 +1,7 @@
 # =================== BUILDER IMAGE ======================
 FROM ubuntu:16.04 as stf_builder
 # Install dependencies
-RUN apt-get update -q && apt-get install -yq \
+RUN apt-get update -qq && apt-get install -yqq \
     curl \
     default-jdk \
     file \
@@ -42,13 +42,12 @@ FROM ubuntu:16.04
 COPY --from=stf_builder /root/openstf /root/sdk/openstf
 COPY --from=stf_builder /root/platform-tools /root/platform-tools
 COPY requirements.txt /root
-RUN ls /root
 ENV PATH /root/platform-tools:$PATH
-RUN apt-get update -q && apt-get install -yq \
+RUN apt-get update -qq && apt-get install -yqq \
        python-software-properties \
        software-properties-common \
     && add-apt-repository ppa:jonathonf/python-3.6 \
-    && apt-get update -q && apt-get install -yq \
+    && apt-get update -qq && apt-get install -yqq \
        python3.6 \
        python3.6-dev \
        python3-pip \
