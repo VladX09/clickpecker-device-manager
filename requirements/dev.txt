@@ -1,6 +1,6 @@
 -r common.txt
 autoflake==1.0
-py==1.4.34
+py==1.10.0
 pyflakes==1.6.0
 pytest==3.2.3
 yapf==0.19.0
